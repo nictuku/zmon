@@ -1,9 +1,9 @@
 package tcp
 
 import (
-	"time"
 	"net"
 	"net/url"
+	"time"
 )
 
 type tcpProbe struct {
@@ -21,6 +21,22 @@ func (p *tcpProbe) Check() error {
 
 func (p *tcpProbe) Scheme() string {
 	return "tcp"
+}
+
+func (p *tcpProbe) Encode(v url.Values) {
+	v.Add("tcp", p.hostport)
+}
+
+func Decode(v url.Values) []*tcpProbe {
+	hostports, ok := v["tcp"]
+	if !ok {
+		return nil
+	}
+	probes := make([]*tcpProbe, 0, len(hostports))
+	for _, h := range hostports {
+		probes = append(probes, &tcpProbe{h})
+	}
+	return probes
 }
 
 func New(url url.URL) *tcpProbe {

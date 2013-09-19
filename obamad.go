@@ -8,9 +8,8 @@ import (
 	"log"
 	"net/smtp"
 	"net/url"
+	"os"
 	"time"
-
-	"github.com/nictuku/obamad/probes/tcp"
 )
 
 // TODO: Prober must not warn after the first error.
@@ -20,6 +19,7 @@ type Probe interface {
 	// Check must never take more than 10s.
 	Check() error
 	Scheme() string
+	Encode(url.Values)
 }
 
 type serviceConfig struct {
@@ -33,7 +33,7 @@ type escalator struct {
 	escalationInterval time.Duration
 	// queued holds messages that will be sent at some point, even if they are old.
 	queued       []notification
-	notificators []notificator
+	Notificators []notificator
 }
 
 func (e *escalator) escalate(err error) {
@@ -45,7 +45,7 @@ func (e *escalator) escalate(err error) {
 		for _, n := range e.queued {
 			msg = append(msg, []byte(n.String())...)
 		}
-		for _, n := range e.notificators {
+		for _, n := range e.Notificators {
 			if err := n.notify(msg); err != nil {
 				log.Println("notification error:", err)
 			} else {
@@ -62,12 +62,22 @@ func (e *escalator) escalate(err error) {
 
 type notificator interface {
 	notify(msg []byte) error
+	encode(v url.Values)
 }
 
 type smtpNotification struct {
+	// If addr is empty, uses localhost:25 and doesn't try to use TLS.
 	addr string
 	from string
-	to   []string
+	to   string
+}
+
+func (s *smtpNotification) encode(v url.Values) {
+	// Using Set and not Add. If more than one config of this type are
+	// found, use only the last one.
+	v.Set("sa", s.addr)
+	v.Set("sf", s.from)
+	v.Set("st", s.to)
 }
 
 var subject = []byte("Subject:Alert from obamad")
@@ -75,9 +85,21 @@ var subject = []byte("Subject:Alert from obamad")
 func (s *smtpNotification) notify(msg []byte) error {
 	msg = bytes.Join([][]byte{subject, msg}, []byte("\n\n"))
 	if s.addr == "" {
-		return localSendMail(s.from, s.to, msg)
+		return localSendMail(s.from, []string{s.to}, msg)
 	}
-	return smtp.SendMail(s.addr, nil, s.from, s.to, msg)
+	return smtp.SendMail(s.addr, nil, s.from, []string{s.to}, msg)
+}
+
+func decodeSMTPNotification(v url.Values) *smtpNotification {
+	s := &smtpNotification{
+		addr: v.Get("sa"),
+		from: v.Get("sf"),
+		to:   v.Get("st"),
+	}
+	if s.from == "" || s.to == "" {
+		return nil
+	}
+	return s
 }
 
 type notification struct {
@@ -91,31 +113,22 @@ func (n notification) String() string {
 
 func main() {
 
-	tcp22 := tcp.New(url.URL{Scheme: "tcp", Host: "localhost:TA-ERRADO-MERMAO"})
-
-	localMonitoring := &serviceConfig{
-		frequency: 5 * time.Second,
-		probes:    []Probe{tcp22},
+	if len(os.Args) != 2 {
+		log.Fatalf("Not enough arguments\nUsage: %v <encoded config string>", os.Args[0])
 	}
 
-	esc := &escalator{
-		escalationInterval: 30 * time.Minute,
-		queued:             make([]notification, 0, 10),
-		// XXX
-		notificators: []notificator{
-			// If addr is empty, uses localhost:25 and doesn't try to use TLS.
-			&smtpNotification{"", "root@cetico.org", []string{"yves.junqueira@gmail.com"}},
-
-			// This would use TLS, so it won't work with self-signed certificates.
-			// &smtpNotification{"something:25", "root@cetico.org", []string{"yves.junqueira@gmail.com"}},
-		},
+	input, err := url.ParseQuery(os.Args[1])
+	if err != nil {
+		log.Fatalf("Input parse error: %v", err)
 	}
 
-	t := time.Tick(localMonitoring.frequency)
+	monitoring := Decode(input)
+
+	t := time.Tick(monitoring.frequency)
 	for {
-		for _, probe := range localMonitoring.probes {
+		for _, probe := range monitoring.probes {
 			if err := probe.Check(); err != nil {
-				esc.escalate(err)
+				monitoring.esc.escalate(err)
 			} else {
 				// DEBUG
 				log.Println(probe.Scheme(), "went fine")
