@@ -1,5 +1,6 @@
 Example input string:
 
-"tcp=localhost:22&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
+"disk=/&tcp=localhost:22&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
 
-This creates a prober that checks if port 22 is reachable and sends an email otherwise.
+This creates a prober that checks if port 22 is reachable and if the root
+filesystem has enough space, sending an email in case of problems.
