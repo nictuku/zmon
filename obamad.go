@@ -128,7 +128,7 @@ func main() {
 	for {
 		for _, probe := range monitoring.probes {
 			if err := probe.Check(); err != nil {
-				monitoring.esc.escalate(err)
+				monitoring.esc.escalate(fmt.Errorf("%v: %v", probe.Scheme(), err))
 			} else {
 				// DEBUG
 				log.Println(probe.Scheme(), "went fine")

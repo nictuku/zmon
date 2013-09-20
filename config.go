@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/nictuku/obamad/probes/disk"
 	"github.com/nictuku/obamad/probes/tcp"
 )
 
@@ -12,12 +13,13 @@ func Decode(input url.Values) *serviceConfig {
 	probes := make([]Probe, 0, 2)
 
 	// Try parsing the input for each probe type.
-
 	tcpProbes := tcp.Decode(input)
-	if len(tcpProbes) > 0 {
-		for _, p := range tcpProbes {
-			probes = append(probes, p)
-		}
+	for _, p := range tcpProbes {
+		probes = append(probes, p)
+	}
+	diskProbes := disk.Decode(input)
+	for _, p := range diskProbes {
+		probes = append(probes, p)
 	}
 
 	if len(probes) == 0 {
