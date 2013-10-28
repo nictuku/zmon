@@ -6,11 +6,16 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net"
 	"net/smtp"
 	"net/url"
 	"os"
 	"time"
 )
+
+// listenPort is used a simple lock mechanism for obamad. If it can't listen to
+// this port, interrupt the startup.
+const listenPort = "127.0.0.1:61510"
 
 // TODO: Prober must not warn after the first error.
 // TODO: Warn user when service restored?
@@ -116,6 +121,14 @@ func main() {
 	if len(os.Args) != 2 {
 		log.Fatalf("Not enough arguments\nUsage: %v <encoded config string>", os.Args[0])
 	}
+	if fd, err := net.Listen("tcp", listenPort); err != nil {
+		// Assume that this is a "address already in use" error and just exit without
+		// printing anything to avoid excessive logging. If there was a nice way to test for
+		// that error I'd use it. 
+		os.Exit(1)
+	} else {
+		defer fd.Close()
+	}
 
 	input, err := url.ParseQuery(os.Args[1])
 	if err != nil {
@@ -131,7 +144,7 @@ func main() {
 				monitoring.esc.escalate(fmt.Errorf("%v: %v", probe.Scheme(), err))
 			} else {
 				// DEBUG
-				log.Println(probe.Scheme(), "went fine")
+				// log.Println(probe.Scheme(), "went fine")
 			}
 		}
 		<-t
