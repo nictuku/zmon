@@ -12,14 +12,18 @@ Example input string:
 This creates a prober that checks if port 22 is reachable and if the root
 filesystem has enough space, sending an email in case of problems.
 
-Deployment
+Installation
 ----------
 
-ObamaD should be run as an unprivileged user. It doesn't need to be installed like normal daemons. Copy the binary to the user's $HOME/bin directory and run it from there.
+ObamaD should be run as an unprivileged user. It doesn't need to be installed like normal daemons. 
 
-To ensure that it's run after boot, create a crontab entry for re-running ObamaD. From the shell, type: 
+Download the binary version of a recent release for your platform and gunzip it, or build it from source. Copy the binary to the user's $HOME/bin directory and run it from there.
 
+To ensure that obamad runs after boot, create a crontab entry for re-running ObamaD. From the shell, type: 
+
+```
 $ crontab -e
+```
 
 And add a crontab line such as:
 
