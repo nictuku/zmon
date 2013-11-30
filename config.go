@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/ring"
 	"log"
 	"net/url"
 	"time"
@@ -8,6 +9,8 @@ import (
 	"github.com/nictuku/obamad/probes/disk"
 	"github.com/nictuku/obamad/probes/tcp"
 )
+
+const maxNotificationLines = 20
 
 func Decode(input url.Values) *serviceConfig {
 	probes := make([]Probe, 0, 2)
@@ -42,7 +45,7 @@ func Decode(input url.Values) *serviceConfig {
 		probes:    probes,
 		esc: escalator{
 			escalationInterval: 30 * time.Minute,
-			queued:             make([]notification, 0, 10),
+			queued:             ring.New(maxNotificationLines),
 			Notificators:       notificators,
 		},
 	}

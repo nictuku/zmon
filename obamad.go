@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"container/ring"
 	"fmt"
 	"log"
 	"net"
@@ -36,26 +37,31 @@ type serviceConfig struct {
 type escalator struct {
 	lastEscalation     time.Time
 	escalationInterval time.Duration
-	// queued holds messages that will be sent at some point, even if they are old.
-	queued       []notification
+	// queued holds messages that will be sent at some point, even if they are old. When the
+	// queue gets to 20 messages, older ones are dropped.
+	queued       *ring.Ring
 	Notificators []notificator
 }
 
 func (e *escalator) escalate(err error) {
-	e.queued = append(e.queued, notification{time.Now(), err})
+	e.queued = e.queued.Next()
+	e.queued.Value = notification{time.Now(), err}
 	if time.Since(e.lastEscalation) > e.escalationInterval {
 		// Merge all queued notifications.
 		// Optimization todo: cache msg.
-		msg := make([]byte, 0, len(e.queued)*len(e.queued[0].m.Error()))
-		for _, n := range e.queued {
-			msg = append(msg, []byte(n.String())...)
-		}
+		msg := make([]byte, 0, 200)
+		e.queued.Do(func(v interface{}) {
+			if notif, ok := v.(notification); ok {
+				msg = append(msg, []byte(notif.String())...)
+			}
+
+		})
 		for _, n := range e.Notificators {
 			if err := n.notify(msg); err != nil {
 				log.Println("notification error:", err)
+				log.Println("Would have written: %q", string(msg))
 			} else {
-				// Zero-out the queue but preserve its allocated space to avoid reallocations.
-				e.queued = e.queued[:0]
+				e.queued = ring.New(maxNotificationLines)
 				e.lastEscalation = time.Now()
 				log.Println("escalation successful")
 				return
@@ -124,7 +130,7 @@ func main() {
 	if fd, err := net.Listen("tcp", listenPort); err != nil {
 		// Assume that this is a "address already in use" error and just exit without
 		// printing anything to avoid excessive logging. If there was a nice way to test for
-		// that error I'd use it. 
+		// that error I'd use it.
 		os.Exit(1)
 	} else {
 		defer fd.Close()
