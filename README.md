@@ -1,4 +1,4 @@
-ObamaD is a host monitoring system that is extremely easy to deploy and configure.
+ZMon is a host monitoring system that is extremely easy to deploy and configure.
 
 Configuration
 -------------
