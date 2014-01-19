@@ -5,7 +5,7 @@ Configuration
 
 TODO: create a web UI for generating the config string based on a form.
 
-Example input string:
+Example input string (TODO: move to JSON):
 
     "disk=/&tcp=localhost:22&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
 
