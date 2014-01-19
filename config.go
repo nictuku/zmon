@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/nictuku/obamad/probes/disk"
-	"github.com/nictuku/obamad/probes/tcp"
+	"github.com/nictuku/zmon/probes/disk"
+	"github.com/nictuku/zmon/probes/tcp"
 )
 
 const maxNotificationLines = 20

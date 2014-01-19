@@ -1,4 +1,4 @@
-// obamad notifies the local server admin when there's a problem.
+// zmon notifies the local server admin when there's a problem.
 // Design: http://goo.gl/l1Y36T
 package main
 
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// listenPort is used a simple lock mechanism for obamad. If it can't listen to
+// listenPort is used a simple lock mechanism for zmon. If it can't listen to
 // this port, interrupt the startup.
 const listenPort = "127.0.0.1:61510"
 
@@ -91,7 +91,7 @@ func (s *smtpNotification) encode(v url.Values) {
 	v.Set("st", s.to)
 }
 
-var subject = []byte("Subject:Alert from obamad")
+var subject = []byte("Subject:Alert from zmon")
 
 func (s *smtpNotification) notify(msg []byte) error {
 	msg = bytes.Join([][]byte{subject, msg}, []byte("\n\n"))

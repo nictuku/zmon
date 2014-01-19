@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/nictuku/obamad/probes/tcp"
+	"github.com/nictuku/zmon/probes/tcp"
 )
 
 func TestDecode(t *testing.T) {
