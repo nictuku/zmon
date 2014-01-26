@@ -18,12 +18,10 @@ func (p *diskProbe) Check() error {
 	if err != nil {
 		return err
 	}
-
 	usedRatio := 1 - (float64(buf.Bfree) / float64(buf.Blocks))
 	if usedRatio > MaxFull {
 		return fmt.Errorf("Partition at %q almost full at %.2f%% (min: %.2f%%)", p.mountpoint, usedRatio*100, MaxFull*100)
 	}
-	fmt.Printf("usedRatio: %v, max: %v\n", usedRatio, MaxFull)
 	return nil
 }
 
