@@ -10,7 +10,7 @@ type diskProbe struct {
 	mountpoint string
 }
 
-const MinFree = 0.90
+const MaxFull = 0.90
 
 func (p *diskProbe) Check() error {
 	buf := new(syscall.Statfs_t)
@@ -19,10 +19,11 @@ func (p *diskProbe) Check() error {
 		return err
 	}
 
-	freeRatio := float64(buf.Bfree) / (float64(buf.Blocks))
-	if freeRatio < MinFree {
-		return fmt.Errorf("Partition at %q almost full at %.2f%% (min: %.2f%%)", p.mountpoint, freeRatio*100, MinFree*100)
+	usedRatio := 1 - (float64(buf.Bfree) / float64(buf.Blocks))
+	if usedRatio > MaxFull {
+		return fmt.Errorf("Partition at %q almost full at %.2f%% (min: %.2f%%)", p.mountpoint, usedRatio*100, MaxFull*100)
 	}
+	fmt.Printf("usedRatio: %v, max: %v\n", usedRatio, MaxFull)
 	return nil
 }
 
