@@ -28,9 +28,9 @@ type Probe interface {
 	Encode(url.Values)
 }
 
-type serviceConfig struct {
-	frequency time.Duration
-	probes    []Probe
+type ServiceConfig struct {
+	Frequency time.Duration
+	Probes    []Probe
 	esc       escalator
 }
 
@@ -143,9 +143,9 @@ func main() {
 
 	monitoring := Decode(input)
 
-	t := time.Tick(monitoring.frequency)
+	t := time.Tick(monitoring.Frequency)
 	for {
-		for _, probe := range monitoring.probes {
+		for _, probe := range monitoring.Probes {
 			if err := probe.Check(); err != nil {
 				monitoring.esc.escalate(fmt.Errorf("%v: %v", probe.Scheme(), err))
 			} else {

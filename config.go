@@ -12,7 +12,7 @@ import (
 
 const maxNotificationLines = 20
 
-func Decode(input url.Values) *serviceConfig {
+func Decode(input url.Values) *ServiceConfig {
 	probes := make([]Probe, 0, 2)
 
 	// Try parsing the input for each probe type.
@@ -40,9 +40,9 @@ func Decode(input url.Values) *serviceConfig {
 		log.Fatal("No notification settings found. Exiting")
 	}
 
-	localMonitoring := &serviceConfig{
-		frequency: 5 * time.Second,
-		probes:    probes,
+	localMonitoring := &ServiceConfig{
+		Frequency: 5 * time.Second,
+		Probes:    probes,
 		esc: escalator{
 			escalationInterval: 30 * time.Minute,
 			queued:             ring.New(maxNotificationLines),
@@ -52,12 +52,12 @@ func Decode(input url.Values) *serviceConfig {
 	return localMonitoring
 }
 
-func Encode(cfg serviceConfig) string {
+func Encode(cfg ServiceConfig) string {
 	v := make(url.Values)
 	for _, n := range cfg.esc.Notificators {
 		n.encode(v)
 	}
-	for _, n := range cfg.probes {
+	for _, n := range cfg.Probes {
 		n.Encode(v)
 	}
 	return v.Encode()

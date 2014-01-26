@@ -16,8 +16,8 @@ func TestDecode(t *testing.T) {
 }
 
 func TestEncoding(t *testing.T) {
-	cfg := serviceConfig{
-		probes: []Probe{tcp.New(url.URL{Host: "localhost:20"})},
+	cfg := ServiceConfig{
+		Probes: []Probe{tcp.New(url.URL{Host: "localhost:20"})},
 		esc: escalator{
 			Notificators: []notificator{&smtpNotification{"", "root@cetico.org", "yves.junqueira@gmail.com"}}},
 	}
