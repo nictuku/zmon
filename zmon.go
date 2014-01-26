@@ -20,6 +20,8 @@ import (
 // this port, interrupt the startup.
 const listenPort = "127.0.0.1:61510"
 
+var hostname string
+
 // TODO: Prober must not warn after the first error.
 // TODO: Warn user when service restored?
 
@@ -47,7 +49,7 @@ type escalator struct {
 
 func (e *escalator) escalate(err error) {
 	e.queued = e.queued.Next()
-	e.queued.Value = notification{time.Now(), err}
+	e.queued.Value = notification{time.Now(), hostname, err}
 	if time.Since(e.lastEscalation) > e.escalationInterval {
 		// Merge all queued notifications.
 		// Optimization todo: cache msg.
@@ -146,11 +148,12 @@ func (p *pushoverNotification) encode(v url.Values) {
 
 type notification struct {
 	time time.Time
+	host string
 	m    error
 }
 
 func (n notification) String() string {
-	return fmt.Sprintf("%v: %v\n", n.time, n.m)
+	return fmt.Sprintf("%v: @%v: %v\n", n.time.Format("2006-01-02 15:04:05 -0700 MST"), n.host, n.m)
 }
 
 func main() {
@@ -165,6 +168,13 @@ func main() {
 		os.Exit(1)
 	} else {
 		defer fd.Close()
+	}
+
+	var err error
+	hostname, err = os.Hostname()
+	if err != nil {
+		log.Printf("os.Hostname failed: %v. Using 'unknown' hostname", err)
+		hostname = "unknown"
 	}
 
 	input, err := url.ParseQuery(os.Args[1])
