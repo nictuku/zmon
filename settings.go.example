@@ -1,0 +1,7 @@
+package main
+
+const (
+	// Application key obtained from pushover.net.
+	// TODO: ask for an open-source app key that can be disclosed.
+        pushoverKey = "<Application Key Obtained from Pushover.net >"
+)

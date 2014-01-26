@@ -35,6 +35,10 @@ func Decode(input url.Values) *ServiceConfig {
 	if smtpN != nil {
 		notificators = append(notificators, smtpN)
 	}
+	pushoverN := decodePushoverNotification(input)
+	if pushoverN != nil {
+		notificators = append(notificators, pushoverN)
+	}
 
 	if len(notificators) == 0 {
 		log.Fatal("No notification settings found. Exiting")

@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"os"
 	"time"
+
+	"bitbucket.org/kisom/gopush/pushover"
 )
 
 // listenPort is used a simple lock mechanism for zmon. If it can't listen to
@@ -111,6 +113,35 @@ func decodeSMTPNotification(v url.Values) *smtpNotification {
 		return nil
 	}
 	return s
+}
+
+func decodePushoverNotification(v url.Values) *pushoverNotification {
+	p := &pushoverNotification{
+		pt: v.Get("pt"),
+	}
+	if p.pt == "" {
+		return nil
+	}
+	p.identity = pushover.Authenticate(pushoverKey, p.pt)
+	return p
+}
+
+type pushoverNotification struct {
+	pt       string
+	identity pushover.Identity
+}
+
+func (p *pushoverNotification) notify(msg []byte) error {
+	sent := pushover.Notify(p.identity, string(msg))
+	if !sent {
+		return fmt.Errorf("pushover notification failed.")
+	}
+	return nil
+}
+func (p *pushoverNotification) encode(v url.Values) {
+	// Using Set and not Add. If more than one config of this type are
+	// found, use only the last one.
+	v.Set("pt", p.pt)
 }
 
 type notification struct {
