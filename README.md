@@ -1,5 +1,7 @@
 Zmon is a host monitoring system that is extremely easy to deploy and configure.
 
+Notifications are sent via SMTP or via pushover.net (alerts to mobile devices via Google Cloud Messaging).
+
 Configuration
 -------------
 
@@ -36,3 +38,8 @@ Notes on using it with crontab:
 - it's configured to run @hourly just in case it unexpectedly crashes -
   strictly speaking, @reboot should be enough.
 - See the "Configuration" section above for instructions on creating the config string.
+
+Limitations
+-----------
+
+If the hardware or network becomes offline or zmon stops working for whatever reason, there is currently no way for users to know. This could be solved by adding a central server that receives heartbeats from zmons, but this is currently not available.
