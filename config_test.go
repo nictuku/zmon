@@ -8,11 +8,18 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	_, err := url.ParseQuery("tcp=localhost:20&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org")
+	values, err := url.ParseQuery("tcp=localhost:20&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org")
 	if err != nil {
-		t.Fatalf("url parse query error: %v", err)
+		t.Fatalf("ParseQuery failed: %v", err)
 	}
-	// TODO: test this.
+	cfg := Decode(values)
+	scheme := cfg.Probes[0].Scheme()
+	if scheme != "tcp" {
+		t.Fatalf("Probe not using the expected schema. Got %v, wanted 'tcp'.", scheme)
+	}
+	if len(cfg.Probes) != 1 {
+		t.Fatalf("Wrong count of probes found. Got %d, wanted 1.", len(cfg.Probes))
+	}
 }
 
 func TestEncoding(t *testing.T) {
