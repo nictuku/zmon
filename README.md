@@ -5,14 +5,14 @@ Notifications are sent via SMTP or via pushover.net (alerts to mobile devices vi
 Configuration
 -------------
 
-TODO: create a web UI for generating the config string based on a form.
+Zmon will eventually have its own minimal web interface for changing the configuration. In the meantime you have to write the config file manually into ~/.zmon. It is a URL-like string like the following:
 
-Example input string (TODO: move to JSON):
+    "disk=/&tcp=localhost:22&tcp=localhost:80&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
 
-    "disk=/&tcp=localhost:22&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
+This creates a prober that checks if ports 22 and 80 are reachable and if the root filesystem has enough space, sending an email to `st` with a sender of `sf` in case of problems.
 
-This creates a prober that checks if port 22 is reachable and if the root
-filesystem has enough space, sending an email in case of problems.
+Example config string:
+
 
 Installation
 ----------
@@ -29,7 +29,7 @@ $ crontab -e
 
 And add a crontab line such as:
 
-    @hourly nohup $HOME/bin/zmon "disk=/&tcp=localhost:22&sa=&st=email\%40example.com&sf=root\%40zmon.org" &
+    @hourly nohup $HOME/bin/zmon "disk=/&tcp=localhost:22&tcp=localhost:80&sa=&st=email\%40example.com&sf=root\%40zmon.org" &
 
 Notes on using it with crontab:
 - it doesn't use special privileges
