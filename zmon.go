@@ -157,7 +157,6 @@ func (n notification) String() string {
 }
 
 func main() {
-
 	if len(os.Args) != 2 {
 		log.Fatalf("Not enough arguments\nUsage: %v <encoded config string>", os.Args[0])
 	}
@@ -181,6 +180,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Input parse error: %v", err)
 	}
+
+	go phoneHome()
 
 	monitoring := Decode(input)
 
