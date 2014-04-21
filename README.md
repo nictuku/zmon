@@ -43,3 +43,9 @@ Limitations
 -----------
 
 If the hardware or network becomes offline or zmon stops working for whatever reason, there is currently no way for users to know. This could be solved by adding a central server that receives heartbeats from zmons, but this is currently not available.
+
+
+Development
+-----------
+
+Goals and tasks are tracked in the [Zmon Trello board](https://trello.com/b/ulJljBwJ/zmon).
