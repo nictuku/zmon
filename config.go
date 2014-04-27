@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/nictuku/zmon/probes/disk"
+	"github.com/nictuku/zmon/probes/http"
 	"github.com/nictuku/zmon/probes/tcp"
 )
 
@@ -22,6 +23,10 @@ func Decode(input url.Values) *ServiceConfig {
 	}
 	diskProbes := disk.Decode(input)
 	for _, p := range diskProbes {
+		probes = append(probes, p)
+	}
+	httpProbes := http.Decode(input)
+	for _, p := range httpProbes {
 		probes = append(probes, p)
 	}
 
