@@ -3,6 +3,7 @@ package main
 import (
 	"container/ring"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -19,7 +20,8 @@ import (
 type Prober struct {
 	// Type of the probe: "disk", tcp", "http", etc.
 	Type string
-	// Target is the resource to be probed. The format depends on the type.
+	// Target is the resource to be probed. For disk, this is the mount point being checked. For
+	// TCP, it's "host:port". For HTTP, it's a URL like "http://localhost:4040/debug/vars".
 	Target string
 	// How often should the probe run, in seconds.
 	IntervalSeconds int
@@ -47,11 +49,11 @@ type Notificator struct {
 	// Where to send the notifications to.
 	// For SMTP, the email address. For PushOver, it's the destination user's token.
 	Destination string
-	// Authentication details.
-	// For PushOver, this is the pushover application key.
-	// For SMTP, it's the server and login details, in the format "user[:password][@server][:port]".
-	// The "user" string is used as the From address. Only 'user' is required. Password is currenly unused even if specified.
-	Auth string
+	// Authentication details. For PushOver, this is the pushover application key. For SMTP, it's
+	// the server and login details, in the format "user[:password][@server][:port]". The "user"
+	// string is used as the From address. Only 'user' is required. Password is currenly unused even
+	// if specified.
+	From string `json:",omitempty"`
 }
 
 func parseSMTPAuth(auth string) (user, serverport string) {
@@ -67,15 +69,15 @@ func parseSMTPAuth(auth string) (user, serverport string) {
 func (n *Notificator) notifier() notifier {
 	switch n.Type {
 	case "smtp":
-		user, server := parseSMTPAuth(n.Auth)
+		user, server := parseSMTPAuth(n.From)
 		return &smtpNotification{
 			addr: server,
-			from: user,
+			from: fmt.Sprintf("%v@%v", user, server),
 			to:   n.Destination,
 		}
 	case "pushover":
 		return &pushoverNotification{
-			identity: pushover.Authenticate(pushoverKey, n.Auth),
+			identity: pushover.Authenticate(pushoverKey, n.From),
 		}
 	default:
 		log.Printf("Ignoring unknown notifier type %q", n.Type)
@@ -136,7 +138,6 @@ func ReadConf() (cfg Config, err error) {
 		return cfg, err
 	}
 	decoder := json.NewDecoder(file)
-	// TODO: Sanity check the config. (e.g: missing notificators, probes)
 	err = decoder.Decode(&cfg)
 	if err != nil {
 		return cfg, err

@@ -11,7 +11,8 @@ import (
 func TestConfig(t *testing.T) {
 	c := Config{
 		[]Prober{{"http", "http://localhost:4040", 5}},
-		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
+		[]Notificator{{"pushover", "userdestination", ""},
+			{"smtp", "user@example.com", "from@example.com"}},
 	}
 	b, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {

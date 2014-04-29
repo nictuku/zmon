@@ -72,7 +72,6 @@ func (s *smtpNotification) notify(msg []byte) error {
 }
 
 type pushoverNotification struct {
-	pt       string // TODO: Remove
 	identity pushover.Identity
 }
 
