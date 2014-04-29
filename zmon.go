@@ -43,6 +43,7 @@ func main() {
 		// Assume that this is a "address already in use" error and just exit without
 		// printing anything to avoid excessive logging. If there was a nice way to test for
 		// that error I'd use it.
+		fmt.Fprintf(os.Stderr, "Could not start Zmon. Another instance may be already running (%v)\n", err)
 		os.Exit(1)
 	} else {
 		defer fd.Close()
