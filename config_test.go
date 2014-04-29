@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -18,9 +17,8 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("got")
-	fmt.Println(string(b))
-	// t.Logf("Got: %v", string(b))
+	// fmt.Println("TestConfig got")
+	// fmt.Println(string(b))
 	dec := json.NewDecoder(bytes.NewReader(b))
 	var c2 Config
 	if err := dec.Decode(&c2); err != nil {
@@ -29,15 +27,6 @@ func TestConfig(t *testing.T) {
 	if !reflect.DeepEqual(c, c2) {
 		t.Fatalf("Config parsing wanted %v, got %v", c, c2)
 	}
-}
-
-func TestConcreteConfig(t *testing.T) {
-	c := Config{
-		[]Prober{{"http", "http://localhost:4040", 5}},
-		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
-	}
-	fmt.Printf("Escalator: %+v", c.newEscalator())
-	fmt.Printf("Escalator Noti: %+v", c.newEscalator().Notifiers)
 }
 
 func TestSMTPAuthParse(t *testing.T) {
