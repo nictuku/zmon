@@ -11,6 +11,27 @@ import (
 	"github.com/nictuku/zmon/probes/tcp"
 )
 
+type Prober struct {
+	// Type of the probe: "disk", tcp", "http", etc.
+	Type string
+	// Target is the resource to be probed. The format depends on the type.
+	Target string
+	// Interval when the probe should run
+	Freq time.Duration
+}
+
+type Notificator struct {
+	// smtp, pushover, etc.
+	Type        string
+	Destination string
+}
+
+// Config contains the zmon agent configuration.
+type Config struct {
+	Probes       []Prober
+	Notification []Notificator
+}
+
 const maxNotificationLines = 20
 
 func Decode(input url.Values) *ServiceConfig {
