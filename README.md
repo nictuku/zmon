@@ -50,15 +50,14 @@ To ensure that zmon runs after boot,  a convenient method is to create a crontab
 $ crontab -e
 ```
 
-And add a crontab line such as:
+Add the following lines:
 
-    @hourly nohup $HOME/bin/zmon &
+    MAILTO=""
+    @reboot nohup $HOME/bin/zmon &
 
 Notes on using it with crontab:
 - it doesn't use special privileges
-- it will silently exit if another copy of zmon is already running
-- it's configured to run @hourly just in case it unexpectedly crashes -
-  strictly speaking, @reboot should be enough.
+- the MAILTO="" prevents cron from sending you all the output of zmon.
 - See the "Configuration" section above for instructions on creating the config file.
 
 Limitations
