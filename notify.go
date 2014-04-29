@@ -19,8 +19,8 @@ type escalator struct {
 	escalationInterval time.Duration
 	// queued holds messages that will be sent at some point, even if they are old. When the
 	// queue gets to 20 messages, older ones are dropped.
-	queued       *ring.Ring
-	Notificators []notificator
+	queued    *ring.Ring
+	Notifiers []notifier
 }
 
 func (e *escalator) escalate(err error) {
@@ -36,7 +36,7 @@ func (e *escalator) escalate(err error) {
 			}
 
 		})
-		for _, n := range e.Notificators {
+		for _, n := range e.Notifiers {
 			if err := n.notify(msg); err != nil {
 				log.Println("notification error:", err)
 				log.Println("Would have written: %q", string(msg))
@@ -51,7 +51,7 @@ func (e *escalator) escalate(err error) {
 	}
 }
 
-type notificator interface {
+type notifier interface {
 	notify(msg []byte) error
 	encode(v url.Values)
 }
@@ -105,7 +105,7 @@ func decodePushoverNotification(v url.Values) *pushoverNotification {
 }
 
 type pushoverNotification struct {
-	pt       string
+	pt       string // TODO: Remove
 	identity pushover.Identity
 }
 

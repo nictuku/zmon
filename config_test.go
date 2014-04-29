@@ -3,18 +3,17 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/nictuku/zmon/probes/tcp"
 )
 
 func TestConfig(t *testing.T) {
 	c := Config{
 		[]Prober{{"http", "http://localhost:4040", 5 * time.Second}},
-		[]Notificator{{"pushover", "fooopushoverkey"}},
+		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
 	}
 	b, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
@@ -28,6 +27,38 @@ func TestConfig(t *testing.T) {
 	}
 	if !reflect.DeepEqual(c, c2) {
 		t.Fatalf("Config parsing wanted %v, got %v", c, c2)
+	}
+}
+
+func TestConcreteConfig(t *testing.T) {
+	c := Config{
+		[]Prober{{"http", "http://localhost:4040", 5 * time.Second}},
+		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
+	}
+	fmt.Printf("Escalator: %+v", c.escalator())
+	fmt.Printf("Escalator Noti: %+v", c.escalator().Notifiers)
+}
+
+func TestSMTPAuthParse(t *testing.T) {
+	tests := []struct {
+		input      string
+		user       string
+		serverport string
+	}{{"nictuku", "nictuku", ""},
+		{"nictuku@server", "nictuku", "server"},
+		{"nictuku@server:port", "nictuku", "server:port"},
+		{"nictuku:password", "nictuku", ""},
+		{"nictuku:password@server", "nictuku", "server"},
+		{"nictuku:password@server:port", "nictuku", "server:port"},
+	}
+	for _, test := range tests {
+		user, serverport := parseSMTPAuth(test.input)
+		if user != test.user {
+			t.Errorf("parseSMTPAuth(%v), user = %v; wanted %v", test.input, user, test.user)
+		}
+		if serverport != test.serverport {
+			t.Errorf("parseSMTPAuth(%v), serverport = %v; wanted %v", test.input, serverport, test.serverport)
+		}
 	}
 }
 
@@ -46,13 +77,4 @@ func TestDecode(t *testing.T) {
 	if len(cfg.Probes) != 1 {
 		t.Fatalf("Wrong count of probes found. Got %d, wanted 1.", len(cfg.Probes))
 	}
-}
-
-func TestEncoding(t *testing.T) {
-	cfg := ServiceConfig{
-		Probes: []Probe{tcp.New(url.URL{Host: "localhost:20"})},
-		esc: escalator{
-			Notificators: []notificator{&smtpNotification{"", "root@cetico.org", "yves.junqueira@gmail.com"}}},
-	}
-	t.Logf("%v", Encode(cfg))
 }

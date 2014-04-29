@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+// New creates a new TCP probe that attempts to connect to the specified host:port.
+func New(hostport string) *tcpProbe {
+	return &tcpProbe{hostport}
+}
+
 type tcpProbe struct {
 	hostport string
 }
@@ -39,6 +44,6 @@ func Decode(v url.Values) []*tcpProbe {
 	return probes
 }
 
-func New(url url.URL) *tcpProbe {
+func FromURL(url url.URL) *tcpProbe {
 	return &tcpProbe{url.Host}
 }

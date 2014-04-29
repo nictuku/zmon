@@ -9,6 +9,12 @@ import (
 	httpclient "github.com/dmichael/go-httptimeoutclient"
 )
 
+// New creates a new HTTP probe that sends a GET to the specified URL.
+func New(url string) *httpProbe {
+	client := httpclient.NewTimeoutClient(5*time.Second, 5*time.Second)
+	return &httpProbe{url, client}
+}
+
 type httpProbe struct {
 	url    string
 	client *http.Client
@@ -40,7 +46,7 @@ func Decode(v url.Values) []*httpProbe {
 	return probes
 }
 
-func New(url url.URL) *httpProbe {
+func FromURL(url url.URL) *httpProbe {
 	client := httpclient.NewTimeoutClient(5*time.Second, 5*time.Second)
 	return &httpProbe{url.Host, client}
 }

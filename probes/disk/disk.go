@@ -6,6 +6,11 @@ import (
 	"syscall"
 )
 
+// New creates a new disk probe that uses the specified mount point, e.g: / or /var.
+func New(mountPoint string) *diskProbe {
+	return &diskProbe{mountPoint}
+}
+
 type diskProbe struct {
 	mountpoint string
 }

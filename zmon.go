@@ -24,6 +24,7 @@ type Probe interface {
 	// Check must never take more than 10s.
 	Check() error
 	Scheme() string
+	// TODO: Remove.
 	Encode(url.Values)
 }
 
@@ -52,26 +53,32 @@ func main() {
 		log.Printf("os.Hostname failed: %v. Using 'unknown' hostname", err)
 		hostname = "unknown"
 	}
-
-	input, err := url.ParseQuery(os.Args[1])
+	cfg, err := ReadConf()
 	if err != nil {
-		log.Fatalf("Input parse error: %v", err)
+		log.Fatalf("Error reading config: %v", err)
 	}
 
 	go phoneHome()
 
-	monitoring := Decode(input)
+	e := make(chan error)
+	for _, probe := range cfg.Probes {
+		go probeCheck(probe, e)
+	}
+	escalator := cfg.escalator()
+	for err := range e {
+		escalator.escalate(err)
+	}
+}
 
-	t := time.Tick(monitoring.Frequency)
-	for {
-		for _, probe := range monitoring.Probes {
-			if err := probe.Check(); err != nil {
-				monitoring.esc.escalate(fmt.Errorf("%v: %v", probe.Scheme(), err))
-			} else {
-				// DEBUG
-				// log.Println(probe.Scheme(), "went fine")
-			}
+func probeCheck(p Prober, e chan error) {
+	probe := p.Probe()
+	t := time.Tick(p.Freq)
+	for _ = range t {
+		if err := probe.Check(); err != nil {
+			e <- fmt.Errorf("%v: %v", probe.Scheme(), err)
+		} else {
+			// DEBUG
+			// log.Println(probe.Scheme(), "went fine")
 		}
-		<-t
 	}
 }
