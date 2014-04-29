@@ -70,7 +70,7 @@ func newServerInfo() *serverInfo {
 }
 
 // phoneHome sends stats to http://zmon.org once a while.
-func phoneHome() {
+func contactMothership() {
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", httpServerPort), nil)
 		if err != nil {

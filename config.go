@@ -4,7 +4,6 @@ import (
 	"container/ring"
 	"encoding/json"
 	"log"
-	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -90,7 +89,9 @@ type Config struct {
 	Notification []Notificator
 }
 
-func (c *Config) escalator() *escalator {
+const maxNotificationLines = 20
+
+func (c *Config) newEscalator() *escalator {
 	notifiers := make([]notifier, len(c.Notification))
 	for i, n := range c.Notification {
 		notifiers[i] = n.notifier()
@@ -136,66 +137,12 @@ func ReadConf() (cfg Config, err error) {
 	}
 	decoder := json.NewDecoder(file)
 	// TODO: Sanity check the config. (e.g: missing notificators, probes)
-	return cfg, decoder.Decode(&cfg)
-}
-
-const maxNotificationLines = 20
-
-func Decode(input url.Values) *ServiceConfig {
-	probes := make([]Probe, 0, 2)
-
-	// Try parsing the input for each probe type.
-	tcpProbes := tcp.Decode(input)
-	for _, p := range tcpProbes {
-		probes = append(probes, p)
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		return cfg, err
 	}
-	diskProbes := disk.Decode(input)
-	for _, p := range diskProbes {
-		probes = append(probes, p)
-	}
-	httpProbes := http.Decode(input)
-	for _, p := range httpProbes {
-		probes = append(probes, p)
-	}
-
-	if len(probes) == 0 {
-		log.Fatalf("No probes configured. Exiting.")
-	}
-
-	notificators := make([]notifier, 0, 1)
-
-	smtpN := decodeSMTPNotification(input)
-	if smtpN != nil {
-		notificators = append(notificators, smtpN)
-	}
-	pushoverN := decodePushoverNotification(input)
-	if pushoverN != nil {
-		notificators = append(notificators, pushoverN)
-	}
-
-	if len(notificators) == 0 {
+	if len(cfg.Notification) == 0 {
 		log.Fatal("No notification settings found. Exiting")
 	}
-
-	localMonitoring := &ServiceConfig{
-		Frequency: 5 * time.Second,
-		Probes:    probes,
-		esc: escalator{
-			escalationInterval: 30 * time.Minute,
-			queued:             ring.New(maxNotificationLines),
-			Notifiers:          notificators,
-		},
-	}
-	return localMonitoring
-}
-
-func Encode(cfg ServiceConfig) string {
-	v := make(url.Values)
-	for _, n := range cfg.esc.Notifiers {
-		n.encode(v)
-	}
-	for _, n := range cfg.Probes {
-		n.Encode(v)
-	}
-	return v.Encode()
+	return cfg, nil
 }

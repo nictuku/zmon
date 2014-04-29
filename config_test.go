@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"reflect"
 	"testing"
 	"time"
@@ -19,6 +18,8 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println("got")
+	fmt.Println(string(b))
 	// t.Logf("Got: %v", string(b))
 	dec := json.NewDecoder(bytes.NewReader(b))
 	var c2 Config
@@ -35,8 +36,8 @@ func TestConcreteConfig(t *testing.T) {
 		[]Prober{{"http", "http://localhost:4040", 5 * time.Second}},
 		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
 	}
-	fmt.Printf("Escalator: %+v", c.escalator())
-	fmt.Printf("Escalator Noti: %+v", c.escalator().Notifiers)
+	fmt.Printf("Escalator: %+v", c.newEscalator())
+	fmt.Printf("Escalator Noti: %+v", c.newEscalator().Notifiers)
 }
 
 func TestSMTPAuthParse(t *testing.T) {
@@ -59,22 +60,5 @@ func TestSMTPAuthParse(t *testing.T) {
 		if serverport != test.serverport {
 			t.Errorf("parseSMTPAuth(%v), serverport = %v; wanted %v", test.input, serverport, test.serverport)
 		}
-	}
-}
-
-// TODO: Deprecate these.
-
-func TestDecode(t *testing.T) {
-	values, err := url.ParseQuery("tcp=localhost:20&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org")
-	if err != nil {
-		t.Fatalf("ParseQuery failed: %v", err)
-	}
-	cfg := Decode(values)
-	scheme := cfg.Probes[0].Scheme()
-	if scheme != "tcp" {
-		t.Fatalf("Probe not using the expected schema. Got %v, wanted 'tcp'.", scheme)
-	}
-	if len(cfg.Probes) != 1 {
-		t.Fatalf("Wrong count of probes found. Got %d, wanted 1.", len(cfg.Probes))
 	}
 }

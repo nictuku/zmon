@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/url"
 	"os"
 	"time"
 )
@@ -24,20 +23,22 @@ type Probe interface {
 	// Check must never take more than 10s.
 	Check() error
 	Scheme() string
-	// TODO: Remove.
-	Encode(url.Values)
 }
 
-type ServiceConfig struct {
-	Frequency time.Duration
-	Probes    []Probe
-	esc       escalator
+func probeCheck(p Prober, e chan error) {
+	probe := p.Probe()
+	t := time.Tick(p.Freq)
+	for _ = range t {
+		if err := probe.Check(); err != nil {
+			e <- fmt.Errorf("%v: %v", probe.Scheme(), err)
+		} else {
+			// DEBUG
+			// log.Println(probe.Scheme(), "went fine")
+		}
+	}
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Not enough arguments\nUsage: %v <encoded config string>", os.Args[0])
-	}
 	if fd, err := net.Listen("tcp", listenPort); err != nil {
 		// Assume that this is a "address already in use" error and just exit without
 		// printing anything to avoid excessive logging. If there was a nice way to test for
@@ -57,28 +58,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error reading config: %v", err)
 	}
+	fmt.Println("Probes:", cfg.Probes)
 
-	go phoneHome()
+	go contactMothership()
 
 	e := make(chan error)
 	for _, probe := range cfg.Probes {
 		go probeCheck(probe, e)
 	}
-	escalator := cfg.escalator()
+	escalator := cfg.newEscalator()
 	for err := range e {
 		escalator.escalate(err)
-	}
-}
-
-func probeCheck(p Prober, e chan error) {
-	probe := p.Probe()
-	t := time.Tick(p.Freq)
-	for _ = range t {
-		if err := probe.Check(); err != nil {
-			e <- fmt.Errorf("%v: %v", probe.Scheme(), err)
-		} else {
-			// DEBUG
-			// log.Println(probe.Scheme(), "went fine")
-		}
 	}
 }

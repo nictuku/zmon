@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/smtp"
-	"net/url"
 	"time"
 
 	"bitbucket.org/kisom/gopush/pushover"
@@ -39,7 +38,7 @@ func (e *escalator) escalate(err error) {
 		for _, n := range e.Notifiers {
 			if err := n.notify(msg); err != nil {
 				log.Println("notification error:", err)
-				log.Println("Would have written: %q", string(msg))
+				log.Printf("Would have written: %q", string(msg))
 			} else {
 				e.queued = ring.New(maxNotificationLines)
 				e.lastEscalation = time.Now()
@@ -53,7 +52,6 @@ func (e *escalator) escalate(err error) {
 
 type notifier interface {
 	notify(msg []byte) error
-	encode(v url.Values)
 }
 
 type smtpNotification struct {
@@ -61,14 +59,6 @@ type smtpNotification struct {
 	addr string
 	from string
 	to   string
-}
-
-func (s *smtpNotification) encode(v url.Values) {
-	// Using Set and not Add. If more than one config of this type are
-	// found, use only the last one.
-	v.Set("sa", s.addr)
-	v.Set("sf", s.from)
-	v.Set("st", s.to)
 }
 
 var subject = []byte("Subject:Alert from zmon")
@@ -79,29 +69,6 @@ func (s *smtpNotification) notify(msg []byte) error {
 		return localSendMail(s.from, []string{s.to}, msg)
 	}
 	return smtp.SendMail(s.addr, nil, s.from, []string{s.to}, msg)
-}
-
-func decodeSMTPNotification(v url.Values) *smtpNotification {
-	s := &smtpNotification{
-		addr: v.Get("sa"),
-		from: v.Get("sf"),
-		to:   v.Get("st"),
-	}
-	if s.from == "" || s.to == "" {
-		return nil
-	}
-	return s
-}
-
-func decodePushoverNotification(v url.Values) *pushoverNotification {
-	p := &pushoverNotification{
-		pt: v.Get("pt"),
-	}
-	if p.pt == "" {
-		return nil
-	}
-	p.identity = pushover.Authenticate(pushoverKey, p.pt)
-	return p
 }
 
 type pushoverNotification struct {
@@ -115,11 +82,6 @@ func (p *pushoverNotification) notify(msg []byte) error {
 		return fmt.Errorf("pushover notification failed.")
 	}
 	return nil
-}
-func (p *pushoverNotification) encode(v url.Values) {
-	// Using Set and not Add. If more than one config of this type are
-	// found, use only the last one.
-	v.Set("pt", p.pt)
 }
 
 type notification struct {
