@@ -1,4 +1,4 @@
-Zmon is a host monitoring system that is extremely easy to deploy and configure.
+Zmon is a host monitoring system that aims to be extremely easy to deploy and configure. It is not there yet.
 
 Notifications are sent via SMTP or via pushover.net (alerts to mobile devices via Google Cloud Messaging).
 
@@ -63,4 +63,4 @@ Notes on using it with crontab:
 Limitations
 -----------
 
-If the hardware or network becomes offline or zmon stops working for whatever reason, there is currently no way for users to know. This could be solved by adding a central server that receives heartbeats from zmons, but this is currently not available.
+If the hardware or network becomes offline or zmon stops working for whatever reason, users won't know. Work is being done to make Zmons frequently contact a _mothership_ that will be responsible for finding missing or dead agents.
