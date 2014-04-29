@@ -5,23 +5,46 @@ Notifications are sent via SMTP or via pushover.net (alerts to mobile devices vi
 Configuration
 -------------
 
-Zmon will eventually have its own minimal web interface for changing the configuration. In the meantime you have to write the config file manually into ~/.zmon. It is a URL-like string like the following:
+Zmon will eventually have its own minimal web interface for changing the configuration. In the meantime you have to write the config file manually into $HOME/.zmon/zmon.json. Example:
 
-    "disk=/&tcp=localhost:22&tcp=localhost:80&sa=&st=yves.junqueira%40gmail.com&sf=root%40cetico.org"
-
-This creates a prober that checks if ports 22 and 80 are reachable and if the root filesystem has enough space, sending an email to `st` with a sender of `sf` in case of problems.
-
-Example config string:
+    {
+      "Probes": [
+        {
+          "Type": "disk",
+          "Target": "/",
+          "IntervalSeconds": 5
+        },
+        {
+          "Type": "tcp",
+          "Target": "localhost:22",
+          "IntervalSeconds": 5
+        },
+        {
+          "Type": "http",
+          "Target": "http://localhost:4040",
+          "IntervalSeconds": 5
+        }
+      ],
+      "Notification": [
+        {
+          "Type": "pushover",
+          "Destination": "userdestination"
+        },
+        {
+          "Type": "smtp",
+          "Destination": "user@example.com",
+          "From": "zmon@example.com"
+        }
+      ]
+    }
 
 
 Installation
 ----------
 
-Zmon should be run as an unprivileged user. It doesn't need to be installed like normal daemons. 
-
 Download the binary version of a recent release for your platform and gunzip it, or build it from source. Copy the binary to the user's $HOME/bin directory and run it from there.
 
-To ensure that zmon runs after boot, create a crontab entry for re-running Zmon. From the shell, type: 
+To ensure that zmon runs after boot,  a convenient method is to create a crontab entry for re-running Zmon. From the shell, type: 
 
 ```
 $ crontab -e
@@ -29,15 +52,14 @@ $ crontab -e
 
 And add a crontab line such as:
 
-    @hourly nohup $HOME/bin/zmon "disk=/&tcp=localhost:22&tcp=localhost:80&sa=&st=email\%40example.com&sf=root\%40zmon.org" &
+    @hourly nohup $HOME/bin/zmon &
 
 Notes on using it with crontab:
 - it doesn't use special privileges
-- the % symbols must be escaped by \
 - it will silently exit if another copy of zmon is already running
 - it's configured to run @hourly just in case it unexpectedly crashes -
   strictly speaking, @reboot should be enough.
-- See the "Configuration" section above for instructions on creating the config string.
+- See the "Configuration" section above for instructions on creating the config file.
 
 Limitations
 -----------
