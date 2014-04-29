@@ -21,8 +21,8 @@ type Prober struct {
 	Type string
 	// Target is the resource to be probed. The format depends on the type.
 	Target string
-	// Interval when the probe should run
-	Freq time.Duration
+	// How often should the probe run, in seconds.
+	IntervalSeconds int
 }
 
 func (p *Prober) Probe() Probe {
@@ -143,6 +143,11 @@ func ReadConf() (cfg Config, err error) {
 	}
 	if len(cfg.Notification) == 0 {
 		log.Fatal("No notification settings found. Exiting")
+	}
+	for _, p := range cfg.Probes {
+		if p.IntervalSeconds == 0 {
+			log.Fatalf("Probe of type %q missing IntervalSeconds", p.Type)
+		}
 	}
 	return cfg, nil
 }

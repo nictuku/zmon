@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestConfig(t *testing.T) {
 	c := Config{
-		[]Prober{{"http", "http://localhost:4040", 5 * time.Second}},
+		[]Prober{{"http", "http://localhost:4040", 5}},
 		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
 	}
 	b, err := json.MarshalIndent(c, "", "  ")
@@ -33,7 +32,7 @@ func TestConfig(t *testing.T) {
 
 func TestConcreteConfig(t *testing.T) {
 	c := Config{
-		[]Prober{{"http", "http://localhost:4040", 5 * time.Second}},
+		[]Prober{{"http", "http://localhost:4040", 5}},
 		[]Notificator{{"pushover", "userdestination", "fooopushoverkey"}},
 	}
 	fmt.Printf("Escalator: %+v", c.newEscalator())

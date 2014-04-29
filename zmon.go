@@ -27,7 +27,7 @@ type Probe interface {
 
 func probeCheck(p Prober, e chan error) {
 	probe := p.Probe()
-	t := time.Tick(p.Freq)
+	t := time.Tick(time.Duration(p.IntervalSeconds) * time.Second)
 	for _ = range t {
 		if err := probe.Check(); err != nil {
 			e <- fmt.Errorf("%v: %v", probe.Scheme(), err)
