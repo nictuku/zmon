@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/nictuku/zmon/updater"
 )
 
 // listenPort is used a simple lock mechanism for zmon. If it can't listen to
@@ -48,6 +50,8 @@ func main() {
 	} else {
 		defer fd.Close()
 	}
+
+	updater.SelfUpdate()
 
 	var err error
 	hostname, err = os.Hostname()
