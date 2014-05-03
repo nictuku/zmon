@@ -4,20 +4,17 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	// Needed until the fix for https://code.google.com/p/go/issues/detail?id=3362 is released.
-	httpclient "github.com/dmichael/go-httptimeoutclient"
 )
 
 // New creates a new HTTP probe that sends a GET to the specified URL.
 func New(url string) *httpProbe {
-	client := httpclient.NewTimeoutClient(5*time.Second, 5*time.Second)
+	client := http.Client{Timeout: 5 * time.Second}
 	return &httpProbe{url, client}
 }
 
 type httpProbe struct {
 	url    string
-	client *http.Client
+	client http.Client
 }
 
 func (p *httpProbe) Check() error {
@@ -38,7 +35,7 @@ func Decode(v url.Values) []*httpProbe {
 	if !ok {
 		return nil
 	}
-	client := httpclient.NewTimeoutClient(5*time.Second, 5*time.Second)
+	client := http.Client{Timeout: 5 * time.Second}
 	probes := make([]*httpProbe, 0, len(urls))
 	for _, h := range urls {
 		probes = append(probes, &httpProbe{h, client})
@@ -47,6 +44,6 @@ func Decode(v url.Values) []*httpProbe {
 }
 
 func FromURL(url url.URL) *httpProbe {
-	client := httpclient.NewTimeoutClient(5*time.Second, 5*time.Second)
+	client := http.Client{Timeout: 5 * time.Second}
 	return &httpProbe{url.Host, client}
 }
