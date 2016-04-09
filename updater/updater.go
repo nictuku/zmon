@@ -3,6 +3,7 @@ package updater
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"runtime"
 
 	update "github.com/inconshreveable/go-update"
@@ -23,13 +24,12 @@ func updateURL() string {
 //
 // - There is no forced shutdown of old binaries.
 func SelfUpdate() error {
-	url := updateURL()
-	log.Println("Updating zmon binary from", url)
-	err, errRecover := update.New().FromUrl(updateURL())
+	resp, err := http.Get(updateURL())
 	if err != nil {
-		if errRecover != nil {
-			return fmt.Errorf("WARNING: Update failed and could recover the old binary%v", err)
-		}
+		return err
+	}
+	defer resp.Body.Close()
+	if err := update.Apply(resp.Body, update.Options{}); err != nil {
 		return fmt.Errorf("Update failed: %v\n", err)
 	}
 	log.Println("Update succeeded")
