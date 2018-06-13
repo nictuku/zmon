@@ -24,6 +24,9 @@ func updateURL() string {
 //
 // - There is no forced shutdown of old binaries.
 func SelfUpdate() error {
+	// Disable because we don't have a stable URL right now.
+	fmt.Println("Self Update disabled")
+	return nil
 	resp, err := http.Get(updateURL())
 	if err != nil {
 		return err
