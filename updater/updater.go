@@ -11,7 +11,7 @@ import (
 
 func updateURL() string {
 	// TODO: Use HTTPS.
-	return fmt.Sprintf("http://zmon.org/static/%v/%v/zmon", runtime.GOOS, runtime.GOARCH)
+	return fmt.Sprintf("http://mothership.pwd/static/%v/%v/zmon", runtime.GOOS, runtime.GOARCH)
 }
 
 // SelfUpdate updates the zmon binary. It has several limitations:

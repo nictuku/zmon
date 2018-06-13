@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	heartBeatURL    = "http://zmon.org/"
+	heartBeatURL    = "http://mothership.pwd/"
 	heartBeatPeriod = time.Second * 30
 	waitTime        = time.Second * 30
 	debug           = true
@@ -69,7 +69,7 @@ func newServerInfo() *serverInfo {
 
 }
 
-// phoneHome sends stats to http://zmon.org once a while.
+// phoneHome sends stats to http://mothership.pw once a while.
 func contactMothership() {
 	go func() {
 		err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", httpServerPort), nil)
