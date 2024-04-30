@@ -10,12 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/kisom/gopush/pushover"
+	"github.com/gregdel/pushover"
 
 	"github.com/nictuku/zmon/probes/disk"
 	"github.com/nictuku/zmon/probes/http"
 	"github.com/nictuku/zmon/probes/tcp"
 )
+
+var pushoverKey = os.Getenv("PUSHOVER_KEY")
+var pushoverRecipient = os.Getenv("PUSHOVER_RECIPIENT")
 
 type Prober struct {
 	// Type of the probe: "disk", tcp", "http", etc.
@@ -77,7 +80,8 @@ func (n *Notificator) notifier() notifier {
 		}
 	case "pushover":
 		return &pushoverNotification{
-			identity: pushover.Authenticate(pushoverKey, n.From),
+			app:      pushover.New(pushoverKey),
+			identity: pushover.NewRecipient(pushoverRecipient),
 		}
 	default:
 		log.Printf("Ignoring unknown notifier type %q", n.Type)
@@ -130,17 +134,50 @@ func confPath() string {
 	return path.Join(dir, "zmon.json")
 }
 
+var defaultCfg = Config{
+	Probes: []Prober{
+		{
+
+			Type:            "disk",
+			Target:          "/",
+			IntervalSeconds: 5,
+		},
+		{
+			Type:            "tcp",
+			Target:          "localhost:22",
+			IntervalSeconds: 5,
+		},
+		{
+			Type: "http",
+
+			Target:          "http://localhost:4040",
+			IntervalSeconds: 5,
+		},
+	},
+	Notification: []Notificator{
+		{
+			Type:        "pushover",
+			Destination: "userdestination",
+		},
+		{
+			Type:        "smtp",
+			Destination: "user@example.com",
+			From:        "zmon@example.com",
+		},
+	},
+}
+
 // ReadConfig reads the mothership configuration from $HOME/.zmon/zmon.json and returns
 // the parsed Config.
 func ReadConf() (cfg Config, err error) {
 	file, err := os.Open(confPath())
 	if err != nil {
-		return cfg, err
+		return defaultCfg, nil
 	}
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&cfg)
 	if err != nil {
-		return cfg, err
+		return defaultCfg, nil
 	}
 	if len(cfg.Notification) == 0 {
 		log.Fatal("No notification settings found. Exiting")

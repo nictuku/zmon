@@ -10,7 +10,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"bitbucket.org/kisom/gopush/pushover"
+	"github.com/gregdel/pushover"
 )
 
 type escalator struct {
@@ -72,12 +72,13 @@ func (s *smtpNotification) notify(msg []byte) error {
 }
 
 type pushoverNotification struct {
-	identity pushover.Identity
+	identity *pushover.Recipient
+	app      *pushover.Pushover
 }
 
 func (p *pushoverNotification) notify(msg []byte) error {
-	sent := pushover.Notify(p.identity, string(msg))
-	if !sent {
+	_, err := p.app.SendMessage(pushover.NewMessage(string(msg)), p.identity)
+	if err != nil {
 		return fmt.Errorf("pushover notification failed.")
 	}
 	return nil

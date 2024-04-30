@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	heartBeatURL    = "http://mothership.pw/"
+	heartBeatURL    = "https://analytics.artell.ai/"
 	heartBeatPeriod = time.Second * 30
 	waitTime        = time.Second * 30
 	debug           = true
